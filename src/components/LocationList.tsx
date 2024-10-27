@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useLocalStorage } from '../hooks/useLocalStorage'
 
 interface LocationData {
   latitude: number
@@ -10,6 +9,7 @@ interface LocationData {
 }
 
 export default function LocationList() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [locations, setLocations] = useState<LocationData[]>([])
 
   useEffect(() => {

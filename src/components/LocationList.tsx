@@ -1,6 +1,7 @@
 'use client'
 
-import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { useState, useEffect } from 'react'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 
 interface LocationData {
   latitude: number
@@ -9,7 +10,19 @@ interface LocationData {
 }
 
 export default function LocationList() {
-  const [locations] = useLocalStorage<LocationData[]>('locationData', [])
+  const [locations, setLocations] = useState<LocationData[]>([])
+
+  useEffect(() => {
+    const updateLocations = () => {
+      const storedLocations = JSON.parse(localStorage.getItem('locationData') || '[]')
+      setLocations(storedLocations)
+    }
+
+    updateLocations() // 初回読み込み
+    const interval = setInterval(updateLocations, 5000) // 5秒ごとに更新
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
       <div className="mt-8">

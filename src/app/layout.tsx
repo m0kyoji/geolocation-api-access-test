@@ -1,11 +1,16 @@
 import { Metadata } from 'next'
+import type { Viewport } from 'next'
 
 export const metadata: Metadata = {
   title: '位置情報トラッカー',
   description: 'バックグラウンドで位置情報を追跡するアプリ',
   manifest: '/manifest.json',
-  themeColor: '#FFFFFF',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+}
+
+export const viewport: Viewport = {
+  themeColor: 'your-theme-color',
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

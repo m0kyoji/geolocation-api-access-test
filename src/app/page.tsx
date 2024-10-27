@@ -1,8 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import LocationTracker from '../components/LocationTracker'
-import LocationList from '../components/LocationList'
+
+const LocationList = dynamic(() => import('../components/LocationList'), {
+  ssr: false,
+})
 
 export default function Home() {
   const [isTracking, setIsTracking] = useState(false)

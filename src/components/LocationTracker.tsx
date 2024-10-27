@@ -15,36 +15,60 @@ interface LocationTrackerProps {
 }
 
 export default function LocationTracker({ isTracking, setIsTracking }: LocationTrackerProps) {
-  const [, setLocations] = useLocalStorage<LocationData[]>('locationData', [])
+  const [locations, setLocations] = useLocalStorage<LocationData[]>('locationData', [])
 
   useEffect(() => {
     if (isTracking) {
-      navigator.serviceWorker.controller?.postMessage({ type: 'START_TRACKING' })
+      navigator.serviceWorker.ready.then((registration) => {
+        console.log('Service Worker is ready');
+        registration.active?.postMessage({ type: 'START_TRACKING' });
+        console.log('Start tracking message sent to Service Worker');
+      });
     } else {
-      navigator.serviceWorker.controller?.postMessage({ type: 'STOP_TRACKING' })
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.active?.postMessage({ type: 'STOP_TRACKING' });
+        console.log('Stop tracking message sent to Service Worker');
+      });
     }
 
-    const handleNewLocation = (event: MessageEvent) => {
-      if (event.data && event.data.type === 'NEW_LOCATION') {
-        const newLocationData = event.data.locationData as LocationData;
-        setLocations((prevLocations: LocationData[]) => [...prevLocations, newLocationData]);
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'GET_LOCATION') {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const locationData = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                timestamp: Date.now(),
+              };
+              navigator.serviceWorker.controller?.postMessage({
+                type: 'LOCATION_DATA',
+                locationData: locationData,
+              });
+            },
+            (error) => {
+              console.error('位置情報の取得に失敗しました:', error);
+            }
+        );
+      } else if (event.data && event.data.type === 'NEW_LOCATION') {
+        console.log('New location data received:', event.data.locationData);
+        setLocations((prevLocations) => [...prevLocations, event.data.locationData]);
       }
-    }
+    };
 
-    navigator.serviceWorker.addEventListener('message', handleNewLocation)
+    navigator.serviceWorker.addEventListener('message', handleMessage);
 
     return () => {
-      navigator.serviceWorker.removeEventListener('message', handleNewLocation)
-    }
-  }, [isTracking, setLocations])
+      navigator.serviceWorker.removeEventListener('message', handleMessage);
+    };
+  }, [isTracking, setLocations]);
 
   const toggleTracking = () => {
-    setIsTracking(!isTracking)
-  }
+    setIsTracking(!isTracking);
+  };
 
   const clearLocations = () => {
-    setLocations([])
-  }
+    setLocations([]);
+  };
 
   return (
       <div className="mb-4">
@@ -61,5 +85,5 @@ export default function LocationTracker({ isTracking, setIsTracking }: LocationT
           位置情報をクリア
         </button>
       </div>
-  )
+  );
 }

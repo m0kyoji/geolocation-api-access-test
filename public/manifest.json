@@ -1,6 +1,11 @@
 {
   "name": "位置情報トラッカー",
   "short_name": "位置トラッカー",
+  "description": "バックグラウンドで位置情報を追跡するアプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "/icon-192x192.png",
@@ -12,10 +17,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "theme_color": "#FFFFFF",
-  "background_color": "#FFFFFF",
-  "start_url": "/",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }

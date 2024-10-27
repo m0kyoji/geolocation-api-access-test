@@ -1,5 +1,3 @@
-let intervalId = null;
-
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
 });
@@ -8,50 +6,64 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+let intervalId = null;
+
 self.addEventListener('message', (event) => {
-  console.log('Service Worker received message:', event.data);
   if (event.data && event.data.type === 'START_TRACKING') {
-    console.log('Service Worker starting tracking');
     startTracking();
   } else if (event.data && event.data.type === 'STOP_TRACKING') {
-    console.log('Service Worker stopping tracking');
     stopTracking();
-  } else if (event.data && event.data.type === 'LOCATION_DATA') {
-    if (intervalId) {  // Only process location data if tracking is active
-      console.log('Service Worker received location data:', event.data.locationData);
-      saveLocationData(event.data.locationData);
-    }
   }
 });
 
 function startTracking() {
-  console.log('Service Worker: startTracking called');
+  if (intervalId) return;
+  
   intervalId = setInterval(() => {
-    console.log('Service Worker: Requesting current position');
-    self.clients.matchAll().then(clients => {
-      clients.forEach(client => {
-        client.postMessage({type: 'GET_LOCATION'});
-      });
-    });
-  }, 10000);
+    self.registration.sync.register('get-location')
+        .then(() => console.log('Background sync registered'))
+        .catch(err => console.error('Background sync registration failed:', err));
+  }, 10000); // 1分ごとに実行
 }
 
 function stopTracking() {
-  console.log('Service Worker: stopTracking called');
   if (intervalId) {
     clearInterval(intervalId);
     intervalId = null;
   }
 }
 
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'get-location') {
+    event.waitUntil(getAndSaveLocation());
+  }
+});
+
+function getAndSaveLocation() {
+  return new Promise((resolve, reject) => {
+    self.clients.matchAll().then(clients => {
+      if (clients.length > 0) {
+        clients[0].postMessage({type: 'GET_LOCATION'});
+      }
+    });
+    resolve();
+  });
+}
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'LOCATION_DATA') {
+    saveLocationData(event.data.locationData);
+  }
+});
+
 function saveLocationData(locationData) {
-  console.log('Service Worker: Saving location data', locationData);
-  self.clients.matchAll().then((clients) => {
-    clients.forEach((client) => {
-      console.log('Service Worker: Sending location data to client');
+  // ここでIndexedDBなどを使用してデータを保存する
+  console.log('Location data saved:', locationData);
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
       client.postMessage({
         type: 'NEW_LOCATION',
-        locationData: locationData,
+        locationData: locationData
       });
     });
   });

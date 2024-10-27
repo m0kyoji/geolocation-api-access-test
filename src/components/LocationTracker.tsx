@@ -15,7 +15,7 @@ interface LocationTrackerProps {
 }
 
 export default function LocationTracker({ isTracking, setIsTracking }: LocationTrackerProps) {
-  const [locations, setLocations] = useLocalStorage<LocationData[]>('locationData', [])
+  const [, setLocations] = useLocalStorage<LocationData[]>('locationData', [])
 
   useEffect(() => {
     if (isTracking) {

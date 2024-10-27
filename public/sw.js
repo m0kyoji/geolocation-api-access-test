@@ -1,4 +1,4 @@
-let intervalId;
+let intervalId = null;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
@@ -17,8 +17,10 @@ self.addEventListener('message', (event) => {
     console.log('Service Worker stopping tracking');
     stopTracking();
   } else if (event.data && event.data.type === 'LOCATION_DATA') {
-    console.log('Service Worker received location data:', event.data.locationData);
-    saveLocationData(event.data.locationData);
+    if (intervalId) {  // Only process location data if tracking is active
+      console.log('Service Worker received location data:', event.data.locationData);
+      saveLocationData(event.data.locationData);
+    }
   }
 });
 
@@ -31,12 +33,14 @@ function startTracking() {
         client.postMessage({type: 'GET_LOCATION'});
       });
     });
-  }, 10000); // 10秒ごとに実行（テスト用）
+  }, 10000);
 }
 
 function stopTracking() {
+  console.log('Service Worker: stopTracking called');
   if (intervalId) {
     clearInterval(intervalId);
+    intervalId = null;
   }
 }
 

@@ -16,6 +16,12 @@ export default function Home() {
       navigator.serviceWorker.register('/sw.js').then(
           (registration) => {
             console.log('Service Worker registered with scope:', registration.scope)
+            // Service Workerの更新を強制
+            registration.update().then(() => {
+              console.log('Service Worker updated')
+            }).catch((error) => {
+              console.error('Service Worker update failed:', error)
+            })
           },
           (error) => {
             console.error('Service Worker registration failed:', error)

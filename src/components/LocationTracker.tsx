@@ -15,22 +15,22 @@ interface LocationTrackerProps {
 }
 
 export default function LocationTracker({ isTracking, setIsTracking }: LocationTrackerProps) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [, setLocations] = useLocalStorage<LocationData[]>('locationData', [])
+  const [locations, setLocations] = useLocalStorage<LocationData[]>('locationData', [])
 
   useEffect(() => {
-    if (isTracking) {
-      navigator.serviceWorker.ready.then((registration) => {
+    const handleTracking = async () => {
+      const registration = await navigator.serviceWorker.ready;
+      if (isTracking) {
         console.log('Service Worker is ready');
         registration.active?.postMessage({ type: 'START_TRACKING' });
         console.log('Start tracking message sent to Service Worker');
-      });
-    } else {
-      navigator.serviceWorker.ready.then((registration) => {
+      } else {
         registration.active?.postMessage({ type: 'STOP_TRACKING' });
         console.log('Stop tracking message sent to Service Worker');
-      });
-    }
+      }
+    };
+
+    handleTracking();
 
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'GET_LOCATION') {
